@@ -1,21 +1,33 @@
+import { instruction }  from './instruction-class'
+
 export class memory extends Uint8Array{
 
     constructor(length) {
         super(length || 4096);
     }    
 
-    getUInt32(address) {
-        var data = 0 >> 0;
+    getInt32(address) {
+        var data = new Int32Array(1);
         for(var k = address; k < address + 4; k++) {
-            data <<= 8;
-            data += this[k];
+            data[0] <<= 8;
+            data[0] |= this[k];
         }
            
-        return data;
+        return data[0];
+    }
+
+    getUInt32(address) {
+        var data = new Uint32Array(1);
+        for(var k = address; k < address + 4; k++) {
+            data[0] <<= 8;
+            data[0] |= this[k];
+        }
+           
+        return data[0];
     }
 
     setUInt32(address, data) {
-        for(var k = address + 4; k > address; k--) {
+        for(var k = address + 3; k >= address; k--) {
             this[k] = data & 0xff;
             data >>>= 8;
         }
@@ -24,31 +36,24 @@ export class memory extends Uint8Array{
     }
 
     getInstruction(address) {
-        var instr = { 
-            opCode: this[address++]
-        }
+        var instr = new instruction(this[address++]);
 
-        instr.adressMode = instr.opCode >>> 6;
+        instr.Registers(this[address++]);
 
-        var uByte = this[address++];
-
-        instr.R1 = uByte >>> 4;
-        instr.R2 = uByte & 0x0F;    
-
-        if(!instr.adressMode) { ////RR Statement
-            instr.length = 2;
-        } else { //RX Statement
-            instr.length = 4;
-            uByte = this[address++];
-            instr.R3 = uByte >>> 4;
-            instr.displacement = (uByte & 0x0F << 8) + this[address++];        
-    
-            if(instr.adressMode == 3) { //SS Statement
-                uByte = this[address++];
+        switch(instr.adressMode){
+            case 0: //RR
+                instr.length = 2;
+                break;
+            case 1: //RX
+            case 2: //RS
+                instr.length = 4;
+                instr.Address1(this[address++], this[address++]);
+                break;
+            case 3: //SS
                 instr.length = 6;
-                instr.R4 = uByte >>> 4;
-                instr.displacement2 = (uByte & 0x0F << 8) + this[address++];    
-            }
+                instr.Address1(this[address++], this[address++]);
+                instr.Address2(this[address++], this[address++]);
+                break;
         }
 
         instr.address = address;

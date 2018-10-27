@@ -1,9 +1,9 @@
 {
-  "name": "start-polymer3",
+  "name": "ibm-360-vm",
   "version": "3.0.0",
   "main": "src/start-polymer3.js",
   "repository": "https://github.com/PolymerLabs/start-polymer3.git",
-  "author": "The Polymer Project Authors",
+  "author": "Adalberto Rua and ...",
   "license": "BSD-3-Clause",
   "dependencies": {
     "@polymer/paper-checkbox": "latest",
