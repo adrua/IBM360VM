@@ -59,11 +59,12 @@ get ConditionCode() {
 
     setConditionCodeInt32(result) {
         if(result > 0) {
-            this._conditionCode = 0b10;
+            result = 0b10;
         } else {
-            this._conditionCode = (this._conditionCode < 0)?0b01:0b00;
+            result = (this._conditionCode < 0)?0b01:0b00;
         }
-        return this._conditionCode;
+        this.ConditionCode = result;
+        return result;
     }
 
     toString(radix = 2) {

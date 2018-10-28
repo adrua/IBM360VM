@@ -23,6 +23,8 @@ RR
 05 BALR Branch and Link Register
 
 RX
-58 L Load 
 50 S Store
+58 L Load 
+5A A Add
+
 

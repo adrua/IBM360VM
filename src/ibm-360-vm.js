@@ -13,26 +13,20 @@
 // so no need to change the symbol. 
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
 import '@polymer/polymer/lib/elements/dom-if.js';
-import '@polymer/paper-checkbox/paper-checkbox.js';
-import { setPassiveTouchGestures } from '@polymer/polymer/lib/utils/settings';
 
 import { cpu } from './cpu-class.js'
 
 class ibm360vm extends PolymerElement {
   static get properties () {
     return {
-      message: {
+      startAddress: {
         type: String,
-        value: ''
+        value:  "100",
+        notify: true
       },
-      pie: {
-        type: Boolean,
-        value: false,
-        observer: 'togglePie'
-      },
-      loadComplete: {
-        type: Boolean,
-        value: false
+      cpu: {
+        type: Object,
+        value:  () => { new cpu() }
       }
     };
   }
@@ -61,6 +55,11 @@ class ibm360vm extends PolymerElement {
     this.IBMCPU.Memory[0x108] = 0x30;
     this.IBMCPU.Memory[0x109] = 0x60;
 
+    this.IBMCPU.Memory[0x10A] = 0x5A; // A R1, 60H(R2, R3)
+    this.IBMCPU.Memory[0x10B] = 0x12;
+    this.IBMCPU.Memory[0x10C] = 0x30;
+    this.IBMCPU.Memory[0x10D] = 0x60;
+
     this.IBMCPU.Registers[2] = 0x0100;
     this.IBMCPU.Registers[3] = 0x0100;
 
@@ -68,6 +67,8 @@ class ibm360vm extends PolymerElement {
     this.IBMCPU.Memory[0x251] = 0x34;
     this.IBMCPU.Memory[0x252] = 0x56;
     this.IBMCPU.Memory[0x253] = 0x78;
+
+    this.set('cpu', this.IBMCPU);
   }
 
   ready(){
@@ -77,19 +78,45 @@ class ibm360vm extends PolymerElement {
     // Open your browser's developer tools to view the output.
     console.log(this.tagName);
   }
+
+  _formatPSW(PSW) {
+    return PSW.toString(2);
+  }
+
+  _formatAddress(PSW) {
+    var addr = "0".repeat(6);
+    addr += PSW.Address.toString(16).toUpperCase();
+    return addr.substr(-6);
+  }
+
+  _formatUInt32(val) {
+    var sVal = "0".repeat(8);
+    sVal += val.toString(16).toUpperCase();
+    return sVal.substr(-8);
+  }
+
+  _formatInt4(val) {
+    var sVal = "0".repeat(2) + val;
+    return sVal.substr(-2);
+  }
   
+  ExecNextInstruction() {
+    this.cpu.ExecNextInstruction();
+    this.notifyPath('cpu.PSW');
+    this.notifyPath('cpu.Registers');
+  }
 
   static get template () {
-    // Template getter must return an instance of HTMLTemplateElement.
-    // The html helper function makes this easy.
     return html`
-      <style>
-      </style>
-
-      <h1>Start IBM 360 </h1>
-      <h2>PSW: {{this.IBMCPU.PSW.toString(2)}}</h2>
+    <h1>PSW: [[_formatPSW(cpu.PSW)]]</h1>
+    <h2>current Address: [[_formatAddress(cpu.PSW)]]H </h2>
+    <h3>Registers</h3>
+    <template is="dom-repeat" items="{{cpu.Registers}}" mutable-data>
+    <div><span>R[[_formatInt4(index)]] [[_formatUInt32(item)]]</span></div>
+  </template>
     `;
   }
+
 }
 
 // Register the element with the browser.
