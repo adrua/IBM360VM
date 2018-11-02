@@ -29,6 +29,17 @@ export class cpu {
     get Registers() {
         return this._regs;
     }
+    
+    getInstructions(address, length) {
+        var instrs = new Array();
+        for(var kInx = 0; kInx < length; kInx++){
+            var instr = this._mem.getInstruction(address);
+            instr.instruction = this._instructions[instr.opCode];
+            instrs.push(instr);
+            address = instr.address;    
+        }
+        return instrs;    
+    }
 
     get getAddressX() {
         const mask24 = 0xFFFFFF; 

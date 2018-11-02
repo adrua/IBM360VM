@@ -1,0 +1,43 @@
+
+%start Main
+
+%% /* language grammar */
+
+Main : Instructions EOF
+    ;
+
+Instructions : Instructions EOL Instruction	
+	| Instruction
+    ;
+			
+Instruction :  InstructionHead InstructionOperands
+    | InstructionHead 
+    ;
+
+InstructionHead : LABEL ID
+    | ID
+    | COMMENT
+    ;
+
+InstructionOperands : expr COMMA expr '(' expr COMMA expr ')'  
+    | expr COMMA expr COMMA expr '(' expr ')'  
+    | expr COMMA expr '(' expr ')'
+    | expr COMMA expr
+    | STAR COMMA expr
+    | STAR
+    | expr
+    ;
+			
+expr : expr OPERATOR factor	
+    | factor
+    ;
+	  
+factor : ID
+    | INT
+    | LITERAL literals
+    | literals 
+    ;
+
+literals: CHARACTERS
+        | PACKED
+        ;

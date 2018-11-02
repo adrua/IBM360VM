@@ -1,0 +1,56 @@
+/* lexical grammar */
+%lex
+%%
+
+\s+                   return 'SPACE'
+[0-9]+                return 'NUMBER'
+"*"                   return 'STAR'
+","                   return 'COMMA'
+[\-\+]                return 'OPERATOR'
+"("                   return '('
+")"                   return ')'
+[A-Z][A-Z0-9]*        return 'ID'
+[\n\r]+               return 'EOL'
+<<EOF>>               return 'EOF'
+
+/lex
+
+/* operator associations and precedence */
+
+%left '+' '-'
+
+%start Main
+
+%% /* language grammar */
+
+Main : Instructions EOF
+    ;
+
+Instructions : Instructions EOL Instruction	
+	| Instruction
+    ;
+			
+Instruction :  InstructionHead SPACE InstructionOperands 
+    | InstructionHead 
+    ;
+
+InstructionHead : ID SPACE ID
+    | SPACE ID
+    ;
+
+InstructionOperands : expr COMMA expr '(' NUMBER COMMA NUMBER ')' 
+    | expr COMMA expr '(' NUMBER ')'
+    | expr COMMA expr
+    | STAR COMMA expr
+    | STAR
+    | expr
+    ;
+			
+expr : expr OPERATOR factor	
+    | factor
+    ;
+	  
+factor : ID
+    | NUMBER
+    ;
+

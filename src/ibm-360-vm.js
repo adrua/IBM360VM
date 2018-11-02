@@ -27,6 +27,10 @@ class ibm360vm extends PolymerElement {
       cpu: {
         type: Object,
         value:  () => { new cpu() }
+      },
+      instructions: {
+        type: Array,
+        value: () => { return []}
       }
     };
   }
@@ -69,6 +73,7 @@ class ibm360vm extends PolymerElement {
     this.IBMCPU.Memory[0x253] = 0x78;
 
     this.set('cpu', this.IBMCPU);
+    this.set('instructions', this.IBMCPU.getInstructions(this.IBMCPU.PSW.Address, 16));
   }
 
   ready(){
@@ -89,31 +94,92 @@ class ibm360vm extends PolymerElement {
     return addr.substr(-6);
   }
 
-  _formatUInt32(val) {
-    var sVal = "0".repeat(8);
+  _formatHexUInt(val, length) {
+    var len = length / 4;
+    var sVal = "0".repeat(len);
     sVal += val.toString(16).toUpperCase();
-    return sVal.substr(-8);
+    return sVal.substr(-len);
   }
 
-  _formatInt4(val) {
-    var sVal = "0".repeat(2) + val;
-    return sVal.substr(-2);
+  _formatInstruction(item) {
+    var address = item.address - item.length;
+    var sInstr = "";
+    if(item.instruction) {
+      var sName = item.instruction.Name + ' '.repeat(6 - item.instruction.Name.length);
+      sInstr = `${this._formatHexUInt(address, 24)} | ${this._formatHexUInt(item.opCode, 8)} ${this._formatHexUInt(item.R1, 4)}${this._formatHexUInt(item.R2, 4)}`;
+      switch(item.addressMode) {
+        case 0: //RR
+          sInstr += " ".repeat(30 - sInstr.length);
+          sInstr += `${sName} R${item.R1}, R${item.R2}`;
+          break;
+        case 1: //RX
+          sInstr += ` ${this._formatHexUInt(item.R3, 4)} ${this._formatHexUInt(item.displacement, 12)}`;
+          sInstr += " ".repeat(30 - sInstr.length);
+          sInstr += `${sName} R${item.R1}, ${item.displacement.toString()}(R${item.R3}, R${item.R2})`;
+          break; 
+        case 2: //RS
+          break;
+        case 3: //SS
+          break;
+        break;
+      }
+    }
+    return sInstr;
   }
-  
+
+  _formatMemory(cpu, instructions) {
+    var _instr = instructions[0];
+    const mask24 = 0xFFFFFF; 
+    var address = (cpu.Registers[_instr.R3] & mask24) + _instr.displacement + ((_instr.R2)?(cpu.Registers[_instr.R2] & mask24):0);
+    var sMem = "";
+    var memory = cpu.Memory;
+
+    for(var kLin = 0; kLin < 16 && address < memory.length; kLin++) {
+      sMem += `${this._formatHexUInt(address, 24)} | `; 
+      for(var kCol = 0; kCol < 4 && address < memory.length; kCol++) {
+        for(var kByte = 0; kByte <  8 && address < memory.length; kByte++, address++) {
+          sMem += `${this._formatHexUInt(memory[address], 8)}`; 
+        }
+        sMem += " ";
+      }
+      sMem += '\n';
+    }
+
+    return sMem;
+  }
+
   ExecNextInstruction() {
     this.cpu.ExecNextInstruction();
     this.notifyPath('cpu.PSW');
     this.notifyPath('cpu.Registers');
+    this.set('instructions', this.IBMCPU.getInstructions(this.IBMCPU.PSW.Address, 16));
   }
 
   static get template () {
     return html`
     <h1>PSW: [[_formatPSW(cpu.PSW)]]</h1>
     <h2>current Address: [[_formatAddress(cpu.PSW)]]H </h2>
-    <h3>Registers</h3>
-    <template is="dom-repeat" items="{{cpu.Registers}}" mutable-data>
-    <div><span>R[[_formatInt4(index)]] [[_formatUInt32(item)]]</span></div>
-  </template>
+    <div>
+      <div style="float: left">
+        <h3>Registers</h3>
+        <template is="dom-repeat" items="{{cpu.Registers}}" mutable-data style=" font-size: 11px !important; font-family: Menlo, monospace;">
+          <pre>R[[_formatHexUInt(index, 4)]] [[_formatHexUInt(item, 32)]]</pre>
+        </template>
+      </div>
+      <div style="float: left; padding-left: 10px; style=" font-size: 11px !important; font-family: Menlo, monospace;"">
+        <h3>Instructions</h3>
+        <template is="dom-repeat" items="{{instructions}}" mutable-data>
+          <pre>[[_formatInstruction(item)]]</pre>
+        </template>
+        </div>
+      </div>
+      <div style="float: left; padding-left: 10px; style=" font-size: 11px !important; font-family: Menlo, monospace;"">
+        <h3>Memory</h3>
+        <template is="dom-if" if="{{instructions[0].addressMode === 1}}" mutable-data>
+          <pre>[[_formatMemory(cpu, instructions)]]</pre>
+        </template>
+        </div>
+      </div>
     `;
   }
 

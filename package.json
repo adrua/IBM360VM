@@ -16,6 +16,7 @@
     "@polymer/paper-tabs": "^3.0.1",
     "@polymer/polymer": "latest",
     "@webcomponents/webcomponentsjs": "latest",
+    "nearley": "^2.15.1",
     "web-animations-js": "^2.3.1"
   }
 }
