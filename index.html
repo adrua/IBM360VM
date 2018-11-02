@@ -8,6 +8,7 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 -->
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,29 +17,82 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <meta name="theme-color" content="#fff">
   <link rel="icon" href="manifest/favicon.ico">
   <link rel="manifest" href="manifest.json">
-  <link rel="canonical" href="https://start-polymer3.firebaseapp.com/" />
   <script src="./node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js" async></script>
-  <script src="./src/start-polymer3.js" type="module" async></script>
-  <title>Start Polymer 3.0</title>
+  <script type="module" src="./node_modules/@polymer/app-layout/app-toolbar/app-toolbar.js"></script>
+  <script src="./node_modules/web-animations-js/web-animations-next.min.js"></script>
+  <custom-style>
+    <style>
+      body {
+        /* No margin on body so toolbar can span the screen */
+        margin: 0;
+      }
+      app-toolbar {
+        /* Toolbar is the main header, so give it some color */
+        background-color: #1E88E5;
+        font-family: 'Roboto', Helvetica, sans-serif;
+        color: white;
+        --app-toolbar-font-size: 24px;
+      }
+    </style>
+  </custom-style>
+  <script type="module">
+    import './node_modules/@polymer/paper-tabs/paper-tabs.js';
+    import './node_modules/@polymer/paper-icon-button/paper-icon-button.js';
+    import './node_modules/@polymer/iron-icons/iron-icons.js';
+    import './node_modules/@polymer/paper-item/paper-item.js';
+    import './node_modules/@polymer/paper-listbox/paper-listbox.js';
+    import './node_modules/@polymer/paper-menu-button/paper-menu-button.js';
+  </script>
+  <script src="./src/ibm-360-vm.js" type="module" async></script>
+  <title>IBM 360 VM</title>
 </head>
-<body>
-  <start-polymer3>
-    <!-- 
-      Placeholder Content: This content will be replaced when <start-polymer3>
-      is rendered.
-      
-      Placeholder content improves perceived render time and makes sure
-      users with JavaScript disabled will see something helpful.
-    -->
 
-    <h1>Start Polymer 3.0</h1>
-    <p id="jsyes"></p>
-    <script type="text/javascript">
-      document.getElementById('jsyes').innerHTML='Loading...'
-    </script>
-    <noscript>
-      <p>Could not render the custom element. Check that JavaScript is enabled.</p>
-    </noscript>
-  </start-polymer3>
+<body>
+  <app-header-layout>
+    <app-header fixed condenses effects="waterfall" slot="header">
+      <app-toolbar>
+        <paper-menu-button>
+          <paper-icon-button icon="menu" slot="dropdown-trigger"></paper-icon-button>
+          <paper-listbox slot="dropdown-content">
+            <paper-item onclick="ExecNextInstruction();">Step Over</paper-item>
+            <paper-item>Settings</paper-item>
+            <paper-item>Help</paper-item>
+          </paper-listbox>
+        </paper-menu-button>IBM 360 Virtual Machine<div main-title></div>
+        <paper-icon-button icon="search"></paper-icon-button>
+      </app-toolbar>
+    </app-header>
+    <div>
+      <paper-tabs selected="0" sticky>
+        <paper-tab>Intructions</paper-tab>
+        <paper-tab>Memory</paper-tab>
+        <paper-tab>Registers</paper-tab>
+      </paper-tabs>
+      <ibm-360-vm start-address="100" id="IBM360CPU">
+        <!-- 
+          Placeholder Content: This content will be replaced when <start-polymer3>
+          is rendered.
+          
+          Placeholder content improves perceived render time and makes sure
+          users with JavaScript disabled will see something helpful.
+        -->
+
+        <h1>Starting IBM 360 VM</h1>
+        <p id="jsyes"></p>
+        <script type="text/javascript">
+          document.getElementById('jsyes').innerHTML = 'Loading...'
+        </script>
+        <noscript>
+          <p>Could not render the custom element. Check that JavaScript is enabled.</p>
+        </noscript>
+      </ibm-360-vm>
+    </div>
+  </app-header-layout>
+  <script>
+    function ExecNextInstruction() {
+      var cpu = document.getElementById("IBM360CPU");
+      cpu.ExecNextInstruction();
+    }
+  </script>
 </body>
 </html>

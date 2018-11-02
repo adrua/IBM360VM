@@ -10,8 +10,12 @@ export class cpu {
         this._regs = new Uint32Array(16);
         this._instructions = []; 
             
+        //RR
+        this._instructions[0x05] = { "Name": "BALR", "Description": "Branch and Link Register", "AddressMode": "RR", "Length": 4, "Exec": () => this.BranchAndLinkRegister()  }; 
+        //RX
         this._instructions[0x50] = { "Name": "ST", "Description": "Store", "AddressMode": "RX", "Length": 4, "Exec": () => this.Store()  }; 
         this._instructions[0x58] = { "Name": "L", "Description": "Load", "AddressMode": "RX", "Length": 4, "Exec": () => this.Load()  }; 
+        this._instructions[0x5A] = { "Name": "A", "Description": "Add", "AddressMode": "RX", "Length": 4, "Exec": () => this.Add()  }; 
     }    
 
     get PSW() {
@@ -41,6 +45,18 @@ export class cpu {
         return (this._regs[this._instr.R3] & mask24) + this._instr.displacement;
     }
 
+    checkAddressBoundary(address) {
+        if(address & 0b11) {
+            throw "Out of word boundary (" + addr.toString(16) +")";
+        }
+
+        if(address >= this._mem.length) {
+            throw "Out of memory boundary (" + addr.toString(16) +")";
+        }
+
+        return address;
+    }
+
     ExecNextInstruction() {
         this._instr = this._mem.getInstruction(this._psw.Address);
         var instr = this._instructions[this._instr.opCode];
@@ -51,38 +67,33 @@ export class cpu {
         instr.Exec();    
     }
 
+    BranchAndLinkRegister() {
+        this._regs[this._instr.R1] = this._psw.Address;
+        if(this._instr.R2) {
+            this._psw.Address = this._regs[this._instr.R2];
+        }
+    }
+
+    Store() { 
+        var addr = this.checkAddressBoundary(this.getAddressX);
+        this._mem.setUInt32(addr, this._regs[this._instr.R1]);
+    }    
+
     Load() { 
-
-        var addr = this.getAddressX;
-        
-        if(addr & 0x3) {
-            throw "Out of word boundary (" + addr.toString(16) +")";
-        }
-
-        if(addr >= this._mem.length) {
-            throw "Out of memory boundary (" + addr.toString(16) +")";
-        }
-
-        //TODO: Validate Memory key check
-
+        var addr = this.checkAddressBoundary(this.getAddressX);        
         this._regs[this._instr.R1] = this._mem.getUInt32(addr);
     }    
 
-    Store() { 
-
-        var addr = this.getAddressX;
+    Add() { 
+        var addr = this.checkAddressBoundary(this.getAddressX);
         
-        if(addr & 0x3) {
-            throw "Out of word boundary (" + addr.toString(16) +")";
-        }
-
-        if(addr >= this._mem.length) {
-            throw "Out of memory boundary (" + addr.toString(16) +")";
-        }
-
-        //TODO: Validate Memory key check
-
-        this._mem.setUInt32(addr, this._regs[this._instr.R1]);
+        //try {
+            this._regs[this._instr.R1] +=  this._mem.getInt32(addr);
+            this.PSW.setConditionCodeInt32(this._regs[this._instr.R1]);
+        //} catch {
+        //    this.PSW.ConditionCode = 0b11;
+        //}
+        
     }    
 
 }
