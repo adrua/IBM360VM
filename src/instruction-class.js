@@ -1,7 +1,7 @@
 export class instruction {
     constructor(opCode){
         this.opCode = opCode;
-        this.adressMode = opCode >>> 6;
+        this.addressMode = opCode >>> 6;
     }
 
     Registers(uByte) {

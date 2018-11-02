@@ -1,0 +1,30 @@
+<html>
+    <head>
+        <script src="./bal360.js"></script>
+        <script src="./bal360lex.js"></script>    
+    </head>
+    <body>
+        <input type="file" id="source">
+        <button type="button" onclick="compile()">Parse</button>
+        <pre id="result"></pre>
+        <script>
+            function compile() {
+                var file = document.getElementById("source").files[0];
+                if (file) {
+                    var reader = new FileReader();
+                    reader.readAsText(file, "UTF-8");
+                    reader.onload = function (evt) {
+                        bal360.lexer = new Bal360Scanner();
+                        var res = bal360.parse(evt.target.result);
+                        window.document.getElementById("result").innerText = res;
+                    }
+                    reader.onerror = function (evt) {
+                        document.getElementById("result").innerHTML = "error reading file";
+                    }
+                }
+            }
+            </script>
+    </body>
+</html>
+
+

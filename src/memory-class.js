@@ -40,7 +40,7 @@ export class memory extends Uint8Array{
 
         instr.Registers(this[address++]);
 
-        switch(instr.adressMode){
+        switch(instr.addressMode){
             case 0: //RR
                 instr.length = 2;
                 break;
