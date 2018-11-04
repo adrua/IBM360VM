@@ -1,5 +1,7 @@
-
+  
 %start Main
+%left '+' '-'
+%left expr comment
 
 %% /* language grammar */
 
@@ -10,8 +12,8 @@ Instructions : Instructions EOL Instruction
 	| Instruction
     ;
 			
-Instruction :  InstructionHead InstructionOperands
-    | InstructionHead 
+Instruction : InstructionHead InstructionOperands        { bal360.lexer.yyloc.findEol = true; }
+    | InstructionHead                                    { bal360.lexer.yyloc.findEol = true; }   
     ;
 
 InstructionHead : LABEL ID
@@ -19,12 +21,11 @@ InstructionHead : LABEL ID
     | COMMENT
     ;
 
-InstructionOperands : expr COMMA expr '(' expr COMMA expr ')'  
-    | expr COMMA expr COMMA expr '(' expr ')'  
-    | expr COMMA expr '(' expr ')'
-    | expr COMMA expr
-    | STAR COMMA expr
-    | STAR
+
+InstructionOperands : expr ',' expr '(' expr ',' expr ')'  
+    | expr ',' expr ',' expr '(' expr ')'  
+    | expr ',' expr '(' expr ')'
+    | expr ',' expr
     | expr
     ;
 			
@@ -36,6 +37,7 @@ factor : ID
     | INT
     | LITERAL literals
     | literals 
+    | STAR
     ;
 
 literals: CHARACTERS

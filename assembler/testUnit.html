@@ -1,12 +1,17 @@
 <html>
     <head>
-        <script src="./bal360.js"></script>
         <script src="./bal360lex.js"></script>    
+        <script src="./bal360ll.js"></script>
+        <script src="./bal360sem.js"></script>
     </head>
     <body>
         <input type="file" id="source">
         <button type="button" onclick="compile()">Parse</button>
-        <pre id="result"></pre>
+        <br/>
+        <pre id="result" style="float: left; width: 70%"></pre>
+        <pre id="binaries" style="float: right; width: 30%"></pre>
+        <br/>
+        <div id="symbols" style="float: left; width: 30%"></div>
         <script>
             function compile() {
                 var file = document.getElementById("source").files[0];
@@ -14,9 +19,38 @@
                     var reader = new FileReader();
                     reader.readAsText(file, "UTF-8");
                     reader.onload = function (evt) {
-                        bal360.lexer = new Bal360Scanner();
+                        var bal360 = new bal360ll();
+
+                        // Analizador sintactico y generador dek arbol de analisis sintactico    
                         var res = bal360.parse(evt.target.result);
-                        window.document.getElementById("result").innerText = res;
+                        var result = window.document.getElementById("result");
+                        result.innerText = res.map((x) => JSON.stringify(x)).join('\n')                                                                           
+                        var gencode = new bal360sem(bal360);
+                        //Primera Pasada crea la tabla de simbolos
+                        gencode.fx_instructions(res);
+                        //Calcula las posiciones de los literales
+                        gencode.fx_setLiteralsAddress();
+                        //Segunda Pasada genera el codigo binario
+                        var assemblies = gencode.fx_instructions(res);
+                        var binaries = window.document.getElementById("binaries");
+                        binaries.innerText = assemblies.map((x) => Array.prototype.map.call(new Uint8Array(x.buffer), (y) => ('00' + y.toString(16).toUpperCase()).slice(-2)).join(' ') ).join('\n');
+                        var symbols = window.document.getElementById("symbols");
+                        var sTable =  "<table>\n";
+                        for(var key in gencode.symbols) {
+                            var address = ("000000" + gencode.symbols[key].toString(16)).slice(-6);
+                            sTable += "<tr>\n<td>" + key + "</td><td>" +  address.toUpperCase() + "</td>\n</tr>\n";  
+                        }
+                        for(var key in gencode.literals) {
+                            result.innerText += "\n" + key;    
+                            var literal = gencode.literals[key];    
+                            binaries.innerText += "\n" + Array.prototype.map.call(new Uint8Array(literal.assembly.buffer), (y) => ('00' + y.toString(16).toUpperCase()).slice(-2)).join(' ') 
+
+                            var address = ("000000" + literal.address.toString(16)).slice(-6);
+                            sTable += "<tr>\n<td>" + key + "</td><td>" + address.toUpperCase() + "</td>\n</tr>\n";  
+                        }
+                        sTable += "</table>"
+                        symbols.innerHTML = sTable;       
+                        console.log(gencode.errors.join('\n'));
                     }
                     reader.onerror = function (evt) {
                         document.getElementById("result").innerHTML = "error reading file";

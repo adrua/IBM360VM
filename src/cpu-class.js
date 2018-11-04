@@ -11,7 +11,7 @@ export class cpu {
         this._instructions = []; 
             
         //RR
-        this._instructions[0x05] = { "Name": "BALR", "Description": "Branch and Link Register", "AddressMode": "RR", "Length": 4, "Exec": () => this.BranchAndLinkRegister()  }; 
+        this._instructions[0x05] = { "Name": "BALR", "Description": "Branch and Link Register", "AddressMode": "RR", "Length": 2, "Exec": () => this.BranchAndLinkRegister()  }; 
         //RX
         this._instructions[0x50] = { "Name": "ST", "Description": "Store", "AddressMode": "RX", "Length": 4, "Exec": () => this.Store()  }; 
         this._instructions[0x58] = { "Name": "L", "Description": "Load", "AddressMode": "RX", "Length": 4, "Exec": () => this.Load()  }; 
