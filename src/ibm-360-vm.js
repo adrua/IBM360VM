@@ -12,6 +12,13 @@
 // polymer-element.js now exports PolymerElement instead of Element,
 // so no need to change the symbol. 
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
+import '@polymer/app-layout/app-toolbar/app-toolbar.js';
+import '@polymer/paper-tabs/paper-tabs.js';
+import '@polymer/paper-icon-button/paper-icon-button.js';
+import '@polymer/iron-icons/iron-icons.js';
+import '@polymer/paper-item/paper-item.js';
+import '@polymer/paper-listbox/paper-listbox.js';
+import '@polymer/paper-menu-button/paper-menu-button.js';
 import '@polymer/polymer/lib/elements/dom-if.js';
 
 import { cpu } from './cpu-class.js'
@@ -106,20 +113,31 @@ class ibm360vm extends PolymerElement {
     var sInstr = "";
     if(item.instruction) {
       var sName = item.instruction.Name + ' '.repeat(6 - item.instruction.Name.length);
-      sInstr = `${this._formatHexUInt(address, 24)} | ${this._formatHexUInt(item.opCode, 8)} ${this._formatHexUInt(item.R1, 4)}${this._formatHexUInt(item.R2, 4)}`;
+      sInstr = `${this._formatHexUInt(address, 24)} | ${this._formatHexUInt(item.opCode, 8)} `;
       switch(item.addressMode) {
         case 0: //RR
-          sInstr += " ".repeat(30 - sInstr.length);
+          sInstr += `${this._formatHexUInt(item.R1, 4)}${this._formatHexUInt(item.R2, 4)}`;
+          sInstr += " ".repeat(25 - sInstr.length);
           sInstr += `${sName} R${item.R1}, R${item.R2}`;
           break;
         case 1: //RX
+          sInstr += `${this._formatHexUInt(item.R1, 4)}${this._formatHexUInt(item.R2, 4)}`;
           sInstr += ` ${this._formatHexUInt(item.R3, 4)} ${this._formatHexUInt(item.displacement, 12)}`;
-          sInstr += " ".repeat(30 - sInstr.length);
+          sInstr += " ".repeat(25 - sInstr.length);
           sInstr += `${sName} R${item.R1}, ${item.displacement.toString()}(R${item.R3}, R${item.R2})`;
           break; 
         case 2: //RS
+          sInstr += `${this._formatHexUInt(item.R1, 4)}${this._formatHexUInt(item.R2, 4)}`;
+          sInstr += ` ${this._formatHexUInt(item.R3, 4)} ${this._formatHexUInt(item.displacement, 12)}`;
+          sInstr += " ".repeat(25 - sInstr.length);
+          sInstr += `${sName} R${item.R1}, R${item.R2}, ${item.displacement.toString()}(R${item.R3})`;
           break;
         case 3: //SS
+          sInstr += ` ${this._formatHexUInt(item.R3, 4)} ${this._formatHexUInt(item.displacement, 12)}`;
+          sInstr += ` ${this._formatHexUInt(item.R4, 4)} ${this._formatHexUInt(item.displacement2, 12)}`;
+          sInstr += " ".repeat(25 - sInstr.length);
+          sInstr += `${sName} ${item.displacement.toString()}(R${item.R3}), `;
+          sInstr += `${item.displacement2.toString()}(R${item.R4})`;
           break;
         break;
       }
@@ -150,6 +168,16 @@ class ibm360vm extends PolymerElement {
 
   ExecNextInstruction() {
     this.cpu.ExecNextInstruction();
+    this.notifyPath('cpu.PSW');
+    this.notifyPath('cpu.Registers');
+    this.set('instructions', this.IBMCPU.getInstructions(this.IBMCPU.PSW.Address, 16));
+  }
+
+  set memory(assemblies) {
+    this.IBMCPU.Memory.set(assemblies, 0x0);    
+    this.IBMCPU.PSW.Address = 0;
+    this.IBMCPU.PSW.ConditionCode = 0;
+    this.notifyPath('cpu.memory');
     this.notifyPath('cpu.PSW');
     this.notifyPath('cpu.Registers');
     this.set('instructions', this.IBMCPU.getInstructions(this.IBMCPU.PSW.Address, 16));

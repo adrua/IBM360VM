@@ -1,3 +1,9 @@
+//-------------------------------------------
+// Basic Assembler Language IBM 360
+// Analizador Semantico Generador de Codigo
+// Por Adalberto Raul Rua Aguirre
+// Nov 01/2018
+//-------------------------------------------
 class bal360sem {
     constructor(bal360) {
         this.symbols = {};
@@ -60,7 +66,7 @@ class bal360sem {
         this.pc = 0;
         this.baseRegister = 0;
 
-        var assemblies = instructions.map((instruction) => {
+        this.assemblies = instructions.map((instruction) => {
            if(instruction.label) {
                 this.symbols[instruction.label.toUpperCase()] = this.pc;
            }
@@ -70,7 +76,15 @@ class bal360sem {
            this.pc += opcode.Length; 
            return assembly;
         } );
-        return assemblies;
+
+        length = this.assemblies.reduce((x, y) => x + y.length, 0);
+        var _assemblies = new Uint8Array(length);
+        var kInx = 0;
+        this.assemblies.forEach((assembly) =>{
+            _assemblies.set(assembly, kInx);
+            kInx += assembly.length;
+        });
+        return _assemblies;
     }
 
     //Register Register

@@ -18,7 +18,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <link rel="icon" href="manifest/favicon.ico">
   <link rel="manifest" href="manifest.json">
   <script src="./node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js" async></script>
-  <script type="module" src="./node_modules/@polymer/app-layout/app-toolbar/app-toolbar.js"></script>
   <script src="./node_modules/web-animations-js/web-animations-next.min.js"></script>
   <custom-style>
     <style>
@@ -35,25 +34,23 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
     </style>
   </custom-style>
-  <script type="module">
-    import './node_modules/@polymer/paper-tabs/paper-tabs.js';
-    import './node_modules/@polymer/paper-icon-button/paper-icon-button.js';
-    import './node_modules/@polymer/iron-icons/iron-icons.js';
-    import './node_modules/@polymer/paper-item/paper-item.js';
-    import './node_modules/@polymer/paper-listbox/paper-listbox.js';
-    import './node_modules/@polymer/paper-menu-button/paper-menu-button.js';
-  </script>
   <script src="./src/ibm-360-vm.js" type="module" async></script>
+  <script src="./assembler/bal360lex.js"></script>    
+  <script src="./assembler/bal360ll.js"></script>
+  <script src="./assembler/bal360sem.js"></script>
   <title>IBM 360 VM</title>
 </head>
 
 <body>
+
+  <input id="source" type="file" style="display: none" />
   <app-header-layout>
     <app-header fixed condenses effects="waterfall" slot="header">
       <app-toolbar>
         <paper-menu-button>
           <paper-icon-button icon="menu" slot="dropdown-trigger"></paper-icon-button>
           <paper-listbox slot="dropdown-content">
+            <paper-item onclick="LoadAndAssembly();">Load and Assembly</paper-item>
             <paper-item onclick="ExecNextInstruction();">Step Over</paper-item>
             <paper-item>Settings</paper-item>
             <paper-item>Help</paper-item>
@@ -92,6 +89,39 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     function ExecNextInstruction() {
       var cpu = document.getElementById("IBM360CPU");
       cpu.ExecNextInstruction();
+    }
+
+    var source = document.getElementById("source");
+    source.addEventListener("change", function() {
+      var file = source.files[0];
+      if (file) {
+          var reader = new FileReader();
+          reader.readAsText(file, "UTF-8");
+          reader.onload = function (evt) {
+              var bal360 = new bal360ll();
+
+              // Analizador sintactico y generador dek arbol de analisis sintactico    
+              var res = bal360.parse(evt.target.result);
+              var gencode = new bal360sem(bal360);
+              //Primera Pasada crea la tabla de simbolos
+              gencode.fx_instructions(res);
+              //Calcula las posiciones de los literales
+              gencode.fx_setLiteralsAddress();
+              //Segunda Pasada genera el codigo binario
+              var assemblies = gencode.fx_instructions(res);
+
+              var vm = document.getElementsByTagName("ibm-360-vm")[0];
+              vm.memory = assemblies;
+              console.log(gencode.errors.join('\n'));
+          };
+          reader.onerror = function (evt) {
+              document.getElementById("result").innerHTML = "error reading file";
+          };
+      }
+    })
+
+    function LoadAndAssembly() {
+      source.click();
     }
   </script>
 </body>

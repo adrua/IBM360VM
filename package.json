@@ -1,8 +1,8 @@
 {
   "name": "ibm-360-vm",
   "version": "3.0.0",
-  "main": "src/start-polymer3.js",
-  "repository": "https://github.com/PolymerLabs/start-polymer3.git",
+  "main": "src/ibm-360-vm.js",
+  "repository": "https://github.com/adrua/IBM360VM.git",
   "author": "Adalberto Rua and ...",
   "license": "BSD-3-Clause",
   "dependencies": {

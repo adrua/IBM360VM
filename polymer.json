@@ -1,11 +1,14 @@
 {
   "entrypoint": "index.html",
-  "shell": "src/start-polymer3.js",
+  "shell": "src/ibm-360-vm.js",
   "fragments": [
     "src/lazy-element.js"
   ],
   "sources": [
-   "src/start-polymer3.js",
+   "src/ibm-360-vm.js",
+   "assembler/bal360.js",
+   "assembler/bal360lex.js",
+   "assembler/bal360ll.js",
    "manifest/**",
    "package.json"
   ],

@@ -1,3 +1,9 @@
+//-------------------------------------------
+// Basic Assembler Language IBM 360
+// Analizador Syntactico LL
+// Por Adalberto Raul Rua Aguirre
+// Nov 01/2018
+//-------------------------------------------
 class bal360ll {
 
     constructor() {
