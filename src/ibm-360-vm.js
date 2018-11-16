@@ -124,13 +124,28 @@ class ibm360vm extends PolymerElement {
           sInstr += `${this._formatHexUInt(item.R1, 4)}${this._formatHexUInt(item.R2, 4)}`;
           sInstr += ` ${this._formatHexUInt(item.R3, 4)} ${this._formatHexUInt(item.displacement, 12)}`;
           sInstr += " ".repeat(25 - sInstr.length);
-          sInstr += `${sName} R${item.R1}, ${item.displacement.toString()}(R${item.R3}, R${item.R2})`;
+          if(item.R2) {
+            sInstr += `${sName} R${item.R1}, ${item.displacement.toString()}(R${item.R2}, R${item.R3})`;
+          } else {
+            sInstr += `${sName} R${item.R1}, ${item.displacement.toString()}(R${item.R3})`;
+          }
           break; 
         case 2: //RS
-          sInstr += `${this._formatHexUInt(item.R1, 4)}${this._formatHexUInt(item.R2, 4)}`;
-          sInstr += ` ${this._formatHexUInt(item.R3, 4)} ${this._formatHexUInt(item.displacement, 12)}`;
+          sInstr += `${this._formatHexUInt(item.R1, 4)}${this._formatHexUInt(item.R2, 4)} `;
+          sInstr += `${this._formatHexUInt(item.R3, 4)} ${this._formatHexUInt(item.displacement, 12)}`;
           sInstr += " ".repeat(25 - sInstr.length);
-          sInstr += `${sName} R${item.R1}, R${item.R2}, ${item.displacement.toString()}(R${item.R3})`;
+
+          switch(item.instruction.AddressMode) {
+            case 'SI':
+              sInstr += `${sName} ${item.displacement.toString()}(R${item.R3}), ${this._formatHexUInt(item.R1, 4)}${this._formatHexUInt(item.R2, 4)}H`;
+              break;
+            case 'RRS_2':
+              sInstr += `${sName} R${item.R1}, R${item.R2}, ${item.displacement.toString()}(R${item.R3})`;
+              break;
+            default: 
+              sInstr += `${sName} R${item.R1}, ${item.displacement.toString()}(R${item.R3})`;
+              break;
+          }
           break;
         case 3: //SS
           sInstr += ` ${this._formatHexUInt(item.R3, 4)} ${this._formatHexUInt(item.displacement, 12)}`;
@@ -174,8 +189,11 @@ class ibm360vm extends PolymerElement {
   }
 
   set memory(assemblies) {
-    this.IBMCPU.Memory.set(assemblies, 0x0);    
-    this.IBMCPU.PSW.Address = 0;
+    var startAddress = 0x500;
+    this.IBMCPU.Memory.set(assemblies, startAddress);    
+    this.IBMCPU.Registers[15] = startAddress; //Start Program
+    this.IBMCPU.Registers[13] = startAddress - 0x100; //Stack S.O
+    this.IBMCPU.PSW.Address = startAddress;
     this.IBMCPU.PSW.ConditionCode = 0;
     this.notifyPath('cpu.memory');
     this.notifyPath('cpu.PSW');

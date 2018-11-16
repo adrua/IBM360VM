@@ -93,7 +93,8 @@ class bal360ll {
             if(this.getNextToken('(')) {
                 res.base = this.fx_expr();                
                 if(this.getNextToken(',')) {
-                    res.index = this.fx_expr();                
+                    res.index = res.base;
+                    res.base = this.fx_expr();                
                 }
                 if(!this.getNextToken(')')) {
                     this.triggerError(')');

@@ -13,16 +13,16 @@ export class cpu {
         //RR
         this._instructions[0x05] = { "Name": "BALR", "Description": "Branch and Link Register", "AddressMode": "RR", "Length": 2, "Exec": () => this.BranchAndLinkRegister()  }; 
         this._instructions[0x07] = { "Name": "BCR", "Description": "Branch Condition Register", "AddressMode": "RR", opcode: 0x07, "Length": 2  }; 
-        this._instructions[0x18] = { "Name": "LR", "Description": "Load", "AddressMode": "RR", opcode: 0x18, "Length": 2  }; 
+        this._instructions[0x18] = { "Name": "LR", "Description": "Load", "AddressMode": "RR", opcode: 0x18, "Length": 2, "Exec": () => this.LoadRegister() }; 
         this._instructions[0x19] = { "Name": "CR", "Description": "Compare Register", "AddressMode": "RR", opcode: 0x19,  "Length": 2  }; 
-        this._instructions[0x1A] = { "Name": "SR", "Description": "Add Register (32)", "AddressMode": "RR", opcode: 0x1A, "Length": 2  }; 
-        this._instructions[0x1B] = { "Name": "SR", "Description": "Subtract", "AddressMode": "RRX", opcode: 0x1B, "Length": 2  }; 
+        this._instructions[0x1A] = { "Name": "AR", "Description": "Add Register (32)", "AddressMode": "RR", opcode: 0x1A, "Length": 2  }; 
+        this._instructions[0x1B] = { "Name": "SR", "Description": "Subtract", "AddressMode": "RRX", opcode: 0x1B, "Length": 2, "Exec": () => this.SubtractRegister()   }; 
 
         // RR Extendend mnemonics
         this._instructions[0x07F0] = { "Name": "BR", "Description": "Branch Register (Unconditional)", "AddressMode": "RRX", opcode: 0x07, "mask": 0xf, "Length": 2  }; 
 
         //RX
-        this._instructions[0x41] = { "Name": "LA", "Description": "Load Address", "AddressMode": "RX", opcode: 0x41, "Length": 4  }; 
+        this._instructions[0x41] = { "Name": "LA", "Description": "Load Address", "AddressMode": "RX", opcode: 0x41, "Length": 4, "Exec": () => this.LoadAddress()   }; 
         this._instructions[0x4E] = { "Name": "CVD", "Description": "Convert To Decimal", "AddressMode": "RX", opcode: 0x4E, "Length": 4  }; 
         this._instructions[0x47] = { "Name": "BC", "Description": "Branch if Not Low (C)", "AddressMode": "RX", opcode: 0x47, "Length": 4  }; 
         this._instructions[0x50] = { "Name": "ST", "Description": "Store", "AddressMode": "RX", "Length": 4, "Exec": () => this.Store()  }; 
@@ -37,11 +37,11 @@ export class cpu {
         this._instructions[0x47F0] = { "Name": "B", "Description": "Unconditional Branch", "AddressMode": "RXX", opcode: 0x47, "mask": 0xF, "Length": 4  }; 
 
         //RS Register Storage    
-        this._instructions[0x90] = { "Name": "STM", "Description": "Store Multiple Register", opcode: 0x90, "AddressMode": "RRS_2", "Length": 4  }; 
+        this._instructions[0x90] = { "Name": "STM", "Description": "Store Multiple Register", opcode: 0x90, "AddressMode": "RRS_2", "Length": 4, "Exec": () => this.StoreMultiple()   }; 
         this._instructions[0x98] = { "Name": "LM", "Description": "Load Multiple Register", opcode: 0x98, "AddressMode": "RRS_2", "Length": 4  }; 
 
         //SI Storage Immediate
-        this._instructions[0x92] = { "Name": "MVI", "Description": "Move Immediate", "AddressMode": "SI", opcode: 0x92, "Length": 4  }; 
+        this._instructions[0x92] = { "Name": "MVI", "Description": "Move Immediate", "AddressMode": "SI", opcode: 0x92, "Length": 4, "Exec": () => this.MoveImmediate()  }; 
         this._instructions[0x95] = { "Name": "CLI", "Description": "Compare Logical Immediate", "AddressMode": "SI", opcode: 0x95, "Length": 4  }; 
         this._instructions[0x96] = { "Name": "OI", "Description": "OR Immediate", "AddressMode": "SI", opcode: 0x96, "Length": 4  }; 
         //SS
@@ -115,6 +115,25 @@ export class cpu {
         }
     }
 
+    LoadRegister() {
+        this._regs[this._instr.R1] = this._regs[this._instr.R2];
+    }
+
+    SubtractRegister() { 
+        
+        //try {
+            this._regs[this._instr.R1] -=  this._regs[this._instr.R2];
+            this.PSW.setConditionCodeInt32(this._regs[this._instr.R1]);
+        //} catch {
+        //    this.PSW.ConditionCode = 0b11;
+        //}
+        
+    }    
+
+    LoadAddress() {
+        this._regs[this._instr.R1] = this.getAddressX;
+    }
+
     Store() { 
         var addr = this.checkAddressBoundary(this.getAddressX);
         this._mem.setUInt32(addr, this._regs[this._instr.R1]);
@@ -136,5 +155,25 @@ export class cpu {
         //}
         
     }    
+
+    StoreMultiple() {
+        var addr = this.checkAddressBoundary(this.getAddressSSource);
+            
+        for(var rInx = this._instr.R1; rInx != this._instr.R2; rInx = (rInx + 1) & 0xF) {
+            this._mem.setUInt32(addr, this._regs[rInx]);
+            addr += 4;
+        }
+            
+    }
+
+    //SI
+    MoveImmediate() {
+        var address = this.getAddressSSource;
+        if (address >= this._mem.length) {
+            throw "Out of memory boundary (" + address.toString(16) + ")";
+          }
+      
+        this._mem[address] =  this._mem[this._psw.Address - 3];            
+    }
 
 }
