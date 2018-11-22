@@ -88,11 +88,11 @@ export class cpu {
 
     checkAddressBoundary(address) {
         if(address & 0b11) {
-            throw "Out of word boundary (" + addr.toString(16) +")";
+            throw "Out of word boundary (" + address.toString(16) +")";
         }
 
         if(address >= this._mem.length) {
-            throw "Out of memory boundary (" + addr.toString(16) +")";
+            throw "Out of memory boundary (" + address.toString(16) +")";
         }
 
         return address;

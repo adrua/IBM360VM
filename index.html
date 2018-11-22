@@ -56,6 +56,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             <paper-item>Help</paper-item>
           </paper-listbox>
         </paper-menu-button>IBM 360 Virtual Machine<div main-title></div>
+        <paper-icon-button icon="open-in-browser" title="Load and Assembly" onclick="LoadAndAssembly();"></paper-icon-button>
+        <paper-icon-button icon="play-for-work" title="step Over" onclick="ExecNextInstruction();"></paper-icon-button>
         <paper-icon-button icon="search"></paper-icon-button>
       </app-toolbar>
     </app-header>
@@ -65,7 +67,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <paper-tab>Memory</paper-tab>
         <paper-tab>Registers</paper-tab>
       </paper-tabs>
-      <ibm-360-vm start-address="100" id="IBM360CPU">
+      <ibm-360-vm start-address="500" id="IBM360CPU">
         <!-- 
           Placeholder Content: This content will be replaced when <start-polymer3>
           is rendered.
@@ -105,8 +107,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               var gencode = new bal360sem(bal360);
               //Primera Pasada crea la tabla de simbolos
               gencode.fx_instructions(res);
-              //Calcula las posiciones de los literales
-              gencode.fx_setLiteralsAddress();
               //Segunda Pasada genera el codigo binario
               var assemblies = gencode.fx_instructions(res);
 

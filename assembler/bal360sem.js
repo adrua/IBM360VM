@@ -58,13 +58,15 @@ class bal360sem {
         this.opcodes.USING = { "Name": "USING", "Description": "Set Base Location y Base Register", "AddressMode": "USING", "Length": 0  }; 
         this.opcodes.EQU = { "Name": "EQU", "Description": "Define Constant", "AddressMode": "EQU", "Length": 0  }; 
         this.opcodes.DC = { "Name": "DC", "Description": "Define Storage Constant", "AddressMode": "DC", "Length": 0  }; 
-        this.opcodes.DS = { "Name": "DS", "Description": "Define Storage ", "AddressMode": "DS", "Length": 0  }; 
+        this.opcodes.DS = { "Name": "DS", "Description": "Define Storage", "AddressMode": "DS", "Length": 0  }; 
+        this.opcodes.END = { "Name": "END", "Description": "End Program", "AddressMode": "END", "Length": 0  }; 
     }
 
     fx_instructions(instructions) {
         this.errors = [];
         this.pc = 0;
         this.baseRegister = 0;
+        this.instructions = instructions;
 
         this.assemblies = instructions.map((instruction) => {
            if(instruction.label) {
@@ -219,10 +221,15 @@ class bal360sem {
     }
 
     fx_DC(opcode, instruction) {
+        var operand = instruction.operands[0];
         if(instruction.label) {
+            if(operand.displacement.literal && operand.displacement.literal.substr(0,1).toUpperCase() === 'F') {
+                this.pc >>>= 2;
+                this.pc <<=2;
+                this.pc += 4;
+            }
             this.symbols[instruction.label.toUpperCase()] = this.pc;
         }
-        var operand = instruction.operands[0];
         this.fx_factor(operand.displacement);
         var length = this.lastLiteral.length * this.lastLiteral.count; 
         this.pc += length;
@@ -297,9 +304,7 @@ class bal360sem {
             case typeof operand === 'undefined':
                 return operand;
             case typeof operand === 'object':
-                var value = this.fx_factor(operand.literal);
-                this.lastLiteral.count = operand.count;
-                return value;
+                return this.fx_factor(operand.literal);
             case /^[0-9]+$/.test(operand):
                 this.lastLiteral.length = 4;
                 return parseInt(operand);
@@ -358,12 +363,32 @@ class bal360sem {
         } 
     }
 
-    fx_setLiteralsAddress() {
+
+    fx_END(opcode, instruction) {
+        //Calcula las posiciones de los literales
+        var nkey = 0;
+        var _assemblies = [];
         for(var key in this.literals){
-            this.fx_factor(key);
+            var instruction = {
+                label: '_LITERAL_' + nkey++,
+                mnemonic: "DC",
+                operands: [{
+                    displacement: { literal: key }
+                }]
+            };
+            this.instructions.push(instruction);
+            _assemblies.push(this.fx_DC(null, instruction));
             this.lastLiteral.address = this.pc;
             this.literals[key] = this.lastLiteral;
-            this.pc += this.lastLiteral.length * this.lastLiteral.count;
         }      
+
+        var length = _assemblies.reduce((x, y) => x + y.length, 0);
+        var __assemblies = new Uint8Array(length);
+        var kInx = 0;
+        _assemblies.forEach((assembly) =>{
+            __assemblies.set(assembly, kInx);
+            kInx += assembly.length;
+        });
+        return __assemblies;
     }
 }
