@@ -27,7 +27,7 @@ export class cpu {
         this._instructions[0x47] = { "Name": "BC", "Description": "Branch if Not Low (C)", "AddressMode": "RX", opcode: 0x47, "Length": 4  }; 
         this._instructions[0x50] = { "Name": "ST", "Description": "Store", "AddressMode": "RX", "Length": 4, "Exec": () => this.Store()  }; 
         this._instructions[0x58] = { "Name": "L", "Description": "Load", "AddressMode": "RX", "Length": 4, "Exec": () => this.Load()  }; 
-        this._instructions[0x59] = { "Name": "C", "Description": "Compare", "AddressMode": "RX", opcode: 0x59, "Length": 4  }; 
+        this._instructions[0x59] = { "Name": "C", "Description": "Compare", "AddressMode": "RX", opcode: 0x59, "Length": 4, "Exec": () => this.Compare()   }; 
         this._instructions[0x5A] = { "Name": "A", "Description": "Add", "AddressMode": "RX", "Length": 4, "Exec": () => this.Add()  }; 
 
         // RX Extendend mnemonics
@@ -142,6 +142,18 @@ export class cpu {
     Load() { 
         var addr = this.checkAddressBoundary(this.getAddressX);        
         this._regs[this._instr.R1] = this._mem.getUInt32(addr);
+    }   
+    
+    //Pendiente validacion con el manual de ASM360
+    Compare() { 
+        var addr = this.checkAddressBoundary(this.getAddressX);
+        
+        //try {
+            var value = this._regs[this._instr.R1] - this._mem.getInt32(addr);
+            this.PSW.setConditionCodeInt32(value);
+        //} catch {
+        //    this.PSW.ConditionCode = 0b11;
+        //}        
     }    
 
     Add() { 
