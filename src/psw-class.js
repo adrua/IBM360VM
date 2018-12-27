@@ -5,6 +5,7 @@ export class psw {
         this._psw = new Uint32Array([0, 0]);
         this._program = 0;
         this._address = 0;
+        this._conditionCode = 0;
     }
 // 1    Program                        (R)                                      
     set Program(value) { 
@@ -61,10 +62,32 @@ get ConditionCode() {
         if(result > 0) {
             result = 0b10;
         } else {
-            result = (this._conditionCode < 0)?0b01:0b00;
+            result = (result < 0)?0b01:0b00;
         }
         this.ConditionCode = result;
         return result;
+    }
+
+    checkConditionCode(mask) {
+        switch(mask)
+        {
+            case 0: return false;
+            case 1: return this._conditionCode === 3;
+            case 2: return this._conditionCode === 2;
+            case 3: return this._conditionCode >= 2;
+            case 4: return this._conditionCode === 1;
+            case 5: return this._conditionCode === 1 || this._conditionCode === 3;
+            case 6: return this._conditionCode === 1 || this._conditionCode === 2;
+            case 7: return this._conditionCode >= 1;
+            case 8: return this._conditionCode === 0;
+            case 9: return this._conditionCode === 0 || this._conditionCode === 3;
+            case 10: return this._conditionCode === 0 || this._conditionCode === 2;
+            case 11: return this._conditionCode === 0 || this._conditionCode >= 2;
+            case 12: return this._conditionCode <= 1 ;
+            case 13: return this._conditionCode != 2;
+            case 14: return this._conditionCode <= 2 ;
+            case 15: return true ;
+        }
     }
 
     toString(radix = 2) {

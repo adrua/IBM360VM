@@ -189,7 +189,7 @@ class bal360sem {
         }
         assembly[index] = base << 4;
         assembly[index] += s.displacement >>> 8;
-        assembly[index + 1] += s.displacement & 0xff;
+        assembly[index + 1] = s.displacement & 0xff;
     }
 
     fx_COMMENT(opcode, instruction) {
@@ -207,7 +207,9 @@ class bal360sem {
     fx_USING(opcode, instruction) {
         var assembly = new Uint8Array();
         var s = this.fx_expr(opcode, instruction, 0);
-        this.pc = s.displacement;
+        if(instruction.operands[0].displacement === '*'){
+            this.pc = s.displacement;
+        }
         var s = this.fx_expr(opcode, instruction, 1);
         this.baseRegister = s.displacement;
         return assembly;
@@ -222,20 +224,26 @@ class bal360sem {
 
     fx_DC(opcode, instruction) {
         var operand = instruction.operands[0];
+        var _pc = this.pc;
         if(instruction.label) {
             if(operand.displacement.literal && operand.displacement.literal.substr(0,1).toUpperCase() === 'F') {
                 this.pc >>>= 2;
                 this.pc <<=2;
-                this.pc += 4;
+                if(_pc != this.pc) {
+                    this.pc += 4;                
+                }                
             }
             this.symbols[instruction.label.toUpperCase()] = this.pc;
         }
         this.fx_factor(operand.displacement);
+        this.lastLiteral.count = operand.displacement.count || 1;
         var length = this.lastLiteral.length * this.lastLiteral.count; 
         this.pc += length;
-        var assembly = new Uint8Array(length);
+        var assembly = new Uint8Array(this.pc - _pc);
+        var kkInx = assembly.length - length;
         for(var kInx = 0; kInx < this.lastLiteral.count; kInx++) {
-            assembly.set(this.lastLiteral.assembly, kInx * this.lastLiteral.length);
+            assembly.set(this.lastLiteral.assembly, kkInx);
+            kkInx += this.lastLiteral.length;
         }
         return assembly;
     }
@@ -378,7 +386,7 @@ class bal360sem {
             };
             this.instructions.push(instruction);
             _assemblies.push(this.fx_DC(null, instruction));
-            this.lastLiteral.address = this.pc;
+            this.lastLiteral.address = this.pc - this.lastLiteral.length;
             this.literals[key] = this.lastLiteral;
         }      
 

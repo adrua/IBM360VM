@@ -108,6 +108,13 @@ class ibm360vm extends PolymerElement {
     return sVal.substr(-len);
   }
 
+  _formatBinUInt(val, length) {
+    var len = length ;
+    var sVal = "0".repeat(len);
+    sVal += val.toString(2).toUpperCase();
+    return sVal.substr(-len);
+  }
+
   _formatInstruction(item) {
     var address = item.address - item.length;
     var sInstr = "";
@@ -204,7 +211,7 @@ class ibm360vm extends PolymerElement {
   static get template () {
     return html`
     <h1>PSW: [[_formatPSW(cpu.PSW)]]</h1>
-    <h2>current Address: [[_formatAddress(cpu.PSW)]]H </h2>
+    <h2>current Address: [[_formatAddress(cpu.PSW)]]H ConditionCode:[[_formatBinUInt(cpu.PSW.ConditionCode, 2)]] </h2>
     <div>
       <div style="float: left">
         <h3>Registers</h3>

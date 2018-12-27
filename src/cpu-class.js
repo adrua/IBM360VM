@@ -14,7 +14,7 @@ export class cpu {
         this._instructions[0x05] = { "Name": "BALR", "Description": "Branch and Link Register", "AddressMode": "RR", "Length": 2, "Exec": () => this.BranchAndLinkRegister()  }; 
         this._instructions[0x07] = { "Name": "BCR", "Description": "Branch Condition Register", "AddressMode": "RR", opcode: 0x07, "Length": 2  }; 
         this._instructions[0x18] = { "Name": "LR", "Description": "Load", "AddressMode": "RR", opcode: 0x18, "Length": 2, "Exec": () => this.LoadRegister() }; 
-        this._instructions[0x19] = { "Name": "CR", "Description": "Compare Register", "AddressMode": "RR", opcode: 0x19,  "Length": 2  }; 
+        this._instructions[0x19] = { "Name": "CR", "Description": "Compare Register", "AddressMode": "RR", opcode: 0x19,  "Length": 2, "Exec": () => this.CompareRegister() }; 
         this._instructions[0x1A] = { "Name": "AR", "Description": "Add Register (32)", "AddressMode": "RR", opcode: 0x1A, "Length": 2  }; 
         this._instructions[0x1B] = { "Name": "SR", "Description": "Subtract", "AddressMode": "RRX", opcode: 0x1B, "Length": 2, "Exec": () => this.SubtractRegister()   }; 
 
@@ -24,7 +24,7 @@ export class cpu {
         //RX
         this._instructions[0x41] = { "Name": "LA", "Description": "Load Address", "AddressMode": "RX", opcode: 0x41, "Length": 4, "Exec": () => this.LoadAddress()   }; 
         this._instructions[0x4E] = { "Name": "CVD", "Description": "Convert To Decimal", "AddressMode": "RX", opcode: 0x4E, "Length": 4  }; 
-        this._instructions[0x47] = { "Name": "BC", "Description": "Branch if Not Low (C)", "AddressMode": "RX", opcode: 0x47, "Length": 4  }; 
+        this._instructions[0x47] = { "Name": "BC", "Description": "Branch if Not Low (C)", "AddressMode": "RX", opcode: 0x47, "Length": 4, "Exec": () => this.BranchCondition()    }; 
         this._instructions[0x50] = { "Name": "ST", "Description": "Store", "AddressMode": "RX", "Length": 4, "Exec": () => this.Store()  }; 
         this._instructions[0x58] = { "Name": "L", "Description": "Load", "AddressMode": "RX", "Length": 4, "Exec": () => this.Load()  }; 
         this._instructions[0x59] = { "Name": "C", "Description": "Compare", "AddressMode": "RX", opcode: 0x59, "Length": 4, "Exec": () => this.Compare()   }; 
@@ -119,6 +119,16 @@ export class cpu {
         this._regs[this._instr.R1] = this._regs[this._instr.R2];
     }
 
+    //Pendiente validacion con el manual de ASM360
+    CompareRegister() { 
+        //try {
+            var value = this._regs[this._instr.R1] - this._regs[this._instr.R2];
+            this.PSW.setConditionCodeInt32(value);
+        //} catch {
+        //    this.PSW.ConditionCode = 0b11;
+        //}        
+    }    
+
     SubtractRegister() { 
         
         //try {
@@ -133,6 +143,13 @@ export class cpu {
     LoadAddress() {
         this._regs[this._instr.R1] = this.getAddressX;
     }
+
+    BranchCondition() { 
+        var addr = this.checkAddressBoundary(this.getAddressX);
+        if(this._psw.checkConditionCode( this._instr.R1)) {
+            this._psw.Address = addr;
+        }
+    }    
 
     Store() { 
         var addr = this.checkAddressBoundary(this.getAddressX);

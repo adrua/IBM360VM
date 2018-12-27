@@ -11,11 +11,11 @@ export class instruction {
 
     Address1(uByte, uByte2) {
         this.R3 = uByte >>> 4;
-        this.displacement = (uByte & 0x0F << 8) + uByte2;
+        this.displacement = ((uByte & 0x0F) << 8) + uByte2;
     }
 
     Address2(uByte, uByte2) {
         this.R4 = uByte >>> 4;
-        this.displacement2 = (uByte & 0x0F << 8) + uByte2;
+        this.displacement2 = ((uByte & 0x0F) << 8) + uByte2;
     }    
 }
