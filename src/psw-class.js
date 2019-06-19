@@ -58,6 +58,7 @@ get ConditionCode() {
         return this._address;
     }
 
+    //Arithmetical Operation (Add, Subtract, Multiply, Divide)
     setConditionCodeInt32(result) {
         if(result > 0) {
             result = 0b10;
@@ -65,6 +66,12 @@ get ConditionCode() {
             result = (result < 0)?0b01:0b00;
         }
         this.ConditionCode = result;
+        return result;
+    }
+
+    //Logical Operations (And, Or, )
+    setConditionCodeBoolean(result) {
+        this.ConditionCode = result ? 1: 0;
         return result;
     }
 

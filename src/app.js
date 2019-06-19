@@ -15,6 +15,6 @@ app.get('/', function (req, res) {
     res.status(200).sendFile('index.html', { root: path.join(__dirname, '../') });
 });
 
-app.listen(port, () => {
+app.listen(port, function()  {
     console.log('Escuchando en el puerto ' + port)
 })

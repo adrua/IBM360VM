@@ -42,8 +42,8 @@ export class cpu {
 
         //SI Storage Immediate
         this._instructions[0x92] = { "Name": "MVI", "Description": "Move Immediate", "AddressMode": "SI", opcode: 0x92, "Length": 4, "Exec": () => this.MoveImmediate()  }; 
-        this._instructions[0x95] = { "Name": "CLI", "Description": "Compare Logical Immediate", "AddressMode": "SI", opcode: 0x95, "Length": 4  }; 
-        this._instructions[0x96] = { "Name": "OI", "Description": "OR Immediate", "AddressMode": "SI", opcode: 0x96, "Length": 4  }; 
+        this._instructions[0x95] = { "Name": "CLI", "Description": "Compare Logical Immediate", "AddressMode": "SI", opcode: 0x95, "Length": 4, "Exec": () => this.CompareImmediate()  }; 
+        this._instructions[0x96] = { "Name": "OI", "Description": "OR Immediate", "AddressMode": "SI", opcode: 0x96, "Length": 4,  "Exec": () => this.OrImmediate()  }; 
         //SS
         this._instructions[0xF3] = { "Name": "UNPK", "Description": "Unpack", "AddressMode": "SS", opcode: 0xF3, "Length": 6  }; 
     }    
@@ -145,7 +145,7 @@ export class cpu {
     }
 
     BranchCondition() { 
-        var addr = this.checkAddressBoundary(this.getAddressX);
+        var addr = this.getAddressX;
         if(this._psw.checkConditionCode( this._instr.R1)) {
             this._psw.Address = addr;
         }
@@ -200,9 +200,29 @@ export class cpu {
         var address = this.getAddressSSource;
         if (address >= this._mem.length) {
             throw "Out of memory boundary (" + address.toString(16) + ")";
-          }
+        }
       
         this._mem[address] =  this._mem[this._psw.Address - 3];            
+    }
+
+    CompareImmediate() {
+        var address = this.getAddressSSource;
+        if (address >= this._mem.length) {
+            throw "Out of memory boundary (" + address.toString(16) + ")";
+        }
+
+        var value = this._mem[address] - this._mem[this._psw.Address - 3];
+        this.PSW.setConditionCodeInt32(value);
+    }
+
+    OrImmediate() {
+        var address = this.getAddressSSource;
+        if (address >= this._mem.length) {
+            throw "Out of memory boundary (" + address.toString(16) + ")";
+        }
+
+        this._mem[address] |= this._mem[this._psw.Address - 3];
+        this.PSW.setConditionCodeBoolean(this._mem[address]);
     }
 
 }

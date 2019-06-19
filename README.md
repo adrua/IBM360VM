@@ -1,13 +1,23 @@
 # IBM 360 Maquina Virtual 
 
 Esta maquina esta siendo construida en Javascript ES-2005 y Polymer
+
 ```
 npm install -g polymer-cli
-git clone https://github.com/PolymerLabs/start-polymer3.git
-cd start-polymer3
+git clone https://github.com/adrua/IBM360VM
+cd ibm360vm
 npm install
 polymer serve
 ```
+
+### pruebas en linea
+```
+https://ibm360vm.herokuapp.com/
+```
+
+### Ejemplos
+ibm360vm/assembler/tests
+
 
 ### Install Polymer CLI Prerequisites
 
