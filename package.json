@@ -2,22 +2,36 @@
   "name": "ibm-360-vm",
   "version": "3.0.0",
   "main": "src/ibm-360-vm.js",
-  "repository": "https://github.com/adrua/IBM360VM.git",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adrua/IBM360VM.git"
+  },
   "author": "Adalberto Rua and ...",
   "license": "BSD-3-Clause",
   "dependencies": {
-    "@polymer/app-layout": "^3.0.1",
+    "@polymer/app-layout": "^3.0.2",
     "@polymer/iron-icons": "^3.0.1",
     "@polymer/paper-button": "^3.0.1",
     "@polymer/paper-checkbox": "latest",
-    "@polymer/paper-icon-button": "^3.0.1",
+    "@polymer/paper-icon-button": "^3.0.2",
     "@polymer/paper-item": "^3.0.1",
     "@polymer/paper-listbox": "^3.0.1",
     "@polymer/paper-menu-button": "^3.0.1",
-    "@polymer/paper-tabs": "^3.0.1",
-    "@polymer/polymer": "latest",
-    "@webcomponents/webcomponentsjs": "latest",
-    "nearley": "^2.15.1",
+    "@polymer/paper-tabs": "^3.1.0",
+    "@polymer/polymer": "^3.2.0",
+    "@webcomponents/webcomponentsjs": "^2.2.10",
+    "express": "^4.17.1",
+    "nearley": "^2.16.0",
     "web-animations-js": "^2.3.1"
+  },
+  "description": "Esta maquina sera construida en javascript es-2005\r ```\r npm install -g polymer-cli\r git clone https://github.com/PolymerLabs/start-polymer3.git\r cd start-polymer3\r npm install\r polymer serve\r ```",
+  "bugs": {
+    "url": "https://github.com/adrua/IBM360VM/issues"
+  },
+  "homepage": "https://github.com/adrua/IBM360VM#readme",
+  "devDependencies": {},
+  "scripts": {
+    "start": "node src/app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   }
 }

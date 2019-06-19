@@ -1,6 +1,6 @@
 import { instruction }  from './instruction-class'
 
-export class memory extends Uint8Array{
+export class memory extends Uint8Array {
 
     constructor(length) {
         super(length || 4096);

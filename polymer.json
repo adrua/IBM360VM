@@ -2,11 +2,12 @@
   "entrypoint": "index.html",
   "shell": "src/ibm-360-vm.js",
   "fragments": [
-    "src/lazy-element.js"
+    "src/app.js"
   ],
   "sources": [
    "src/ibm-360-vm.js",
    "assembler/bal360.js",
+   "assembler/bal360sem.js",
    "assembler/bal360lex.js",
    "assembler/bal360ll.js",
    "manifest/**",
@@ -14,7 +15,8 @@
   ],
   "extraDependencies": [
     "manifest.json",
-    "node_modules/@webcomponents/webcomponentsjs/**"
+    "node_modules/@webcomponents/webcomponentsjs/**",
+    "node_modules/web-animations-js/**"
   ],
   "builds": [
     { 
