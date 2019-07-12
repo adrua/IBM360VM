@@ -8,8 +8,9 @@ class bal360sem {
     constructor(bal360) {
         this.symbols = {};
         this.literals = bal360.literals;
-        this.literalsCount  = bal360.literalsCount;
+        this.literalsCount = 0;
         this.pc = 0;
+        this.programLength = 0;
         this.opcodes = {};
         this.errors = [];
         this.baseRegister = 0;
@@ -21,8 +22,8 @@ class bal360sem {
         this.opcodes.BCR = { "Name": "BCR", "Description": "Branch Condition Register", "AddressMode": "RR", opcode: 0x07, "Length": 2  }; 
         this.opcodes.LR = { "Name": "LR", "Description": "Load", "AddressMode": "RR", opcode: 0x18, "Length": 2  }; 
         this.opcodes.CR = { "Name": "CR", "Description": "Compare Register", "AddressMode": "RR", opcode: 0x19,  "Length": 2  }; 
-        this.opcodes.AR = { "Name": "SR", "Description": "Add Register (32)", "AddressMode": "RR", opcode: 0x1A, "Length": 2  }; 
-        this.opcodes.SR = { "Name": "SR", "Description": "Subtract", "AddressMode": "RRX", opcode: 0x1B, "Length": 2  }; 
+        this.opcodes.AR = { "Name": "AR", "Description": "Add Register (32)", "AddressMode": "RR", opcode: 0x1A, "Length": 2  }; 
+        this.opcodes.SR = { "Name": "SR", "Description": "Subtract", "AddressMode": "RR", opcode: 0x1B, "Length": 2  }; 
 
         // RR Extendend mnemonics
         this.opcodes.BR = { "Name": "BR", "Description": "Branch Register (Unconditional)", "AddressMode": "RRX", opcode: 0x07, "mask": 0xf, "Length": 2  }; 
@@ -66,6 +67,7 @@ class bal360sem {
         this.errors = [];
         this.pc = 0;
         this.baseRegister = 0;
+        this.literalsCount = 0;
         this.instructions = instructions;
 
         this.assemblies = instructions.map((instruction) => {
@@ -79,13 +81,23 @@ class bal360sem {
            return assembly;
         } );
 
-        length = this.assemblies.reduce((x, y) => x + y.length, 0);
+        this.pc = (this.pc & 0xFFFFFFFC) + 4;
+
+        this.programLength = this.pc;
+        length = this.pc + this.literalsCount;
+
         var _assemblies = new Uint8Array(length);
         var kInx = 0;
         this.assemblies.forEach((assembly) =>{
             _assemblies.set(assembly, kInx);
             kInx += assembly.length;
         });
+
+        for(var key in this.literals) {
+            var literal = this.literals[key];
+            kInx = this.programLength + literal.displacement; 
+            _assemblies.set(literal.assembly, kInx);
+        }
         return _assemblies;
     }
 
@@ -278,7 +290,7 @@ class bal360sem {
         var res = {};
         switch(true) {
             case typeof displacement === 'object' && !!displacement.literal:
-                res.displacement = this.fx_factor(displacement.literal);
+                res.displacement = this.fx_factor(displacement.literal) + this.programLength - 2;
                 break;
             case typeof displacement === 'object':
                 var left = this.fx_factor(displacement.left);
@@ -334,8 +346,16 @@ class bal360sem {
                 this.lastLiteral.value = val[0];
                 var buffer = new Uint8Array(val.buffer);
                 this.lastLiteral.assembly = buffer.reverse();
-                this.lastLiteral.displacement = this.literals[operand];
-                return (this.lastLiteral.displacement)?this.lastLiteral.displacement.address : this.lastLiteral.value;
+
+                var lc = this.literalsCount & 0xFFFFFFFC;
+                if(lc < this.literalsCount) {
+                    this.literalsCount = lc + 4;
+                }
+
+                this.lastLiteral.displacement = this.literalsCount;
+                this.literals[operand] = Object.assign({}, this.lastLiteral);
+                this.literalsCount += this.lastLiteral.length
+                return this.lastLiteral.displacement;
             case /^X(L[0-9]+)?'.*'+$/i.test(operand): //Integer Fullword 4Bytes
                 var matches = operand.match(/^X(L([0-9]+))?'(.*)'+$/)
                 var sVal = matches[3];
@@ -349,8 +369,10 @@ class bal360sem {
                 for(var kInx = 0; kInx < length; kInx++){
                     this.lastLiteral.assembly[kInx] = parseInt(sVal.substr(kInx << 2, 2), 16);
                 }
-                this.lastLiteral.displacement = this.literals[operand];
-                return (this.lastLiteral.displacement)?this.lastLiteral.displacement.address : this.lastLiteral.value;
+                this.lastLiteral.displacement = this.literalsCount;
+                this.literals[operand] = Object.assign({}, this.lastLiteral);
+                this.literalsCount += this.lastLiteral.length
+                return this.lastLiteral.displacement ;
             case /^C(L[0-9]+)?'.*'+$/i.test(operand): //Integer Fullword 4Bytes
                 var matches = operand.match(/^C(L([0-9]+))?'(.*)'+$/)
                 this.lastLiteral.value = matches[3];
@@ -361,8 +383,10 @@ class bal360sem {
                 }
                 var encoder = new TextEncoder();                
                 this.lastLiteral.assembly = encoder.encode(this.lastLiteral.value);
-                this.lastLiteral.displacement = this.literals[operand];
-                return (this.lastLiteral.displacement)?this.lastLiteral.displacement.address : this.lastLiteral.value;
+                this.lastLiteral.displacement = this.literalsCount;
+                this.literals[operand] = Object.assign({}, this.lastLiteral);
+                this.literalsCount += this.lastLiteral.length
+                return this.lastLiteral.displacement;
             case operand === '*':
                 return this.pc;
             default:

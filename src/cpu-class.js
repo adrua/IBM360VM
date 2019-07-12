@@ -15,8 +15,8 @@ export class cpu {
         this._instructions[0x07] = { "Name": "BCR", "Description": "Branch Condition Register", "AddressMode": "RR", opcode: 0x07, "Length": 2  }; 
         this._instructions[0x18] = { "Name": "LR", "Description": "Load", "AddressMode": "RR", opcode: 0x18, "Length": 2, "Exec": () => this.LoadRegister() }; 
         this._instructions[0x19] = { "Name": "CR", "Description": "Compare Register", "AddressMode": "RR", opcode: 0x19,  "Length": 2, "Exec": () => this.CompareRegister() }; 
-        this._instructions[0x1A] = { "Name": "AR", "Description": "Add Register (32)", "AddressMode": "RR", opcode: 0x1A, "Length": 2  }; 
-        this._instructions[0x1B] = { "Name": "SR", "Description": "Subtract", "AddressMode": "RRX", opcode: 0x1B, "Length": 2, "Exec": () => this.SubtractRegister()   }; 
+        this._instructions[0x1A] = { "Name": "AR", "Description": "Add Register (32)", "AddressMode": "RR", opcode: 0x1A, "Length": 2, "Exec": () => this.AddRegister()  }; 
+        this._instructions[0x1B] = { "Name": "SR", "Description": "Subtract", "AddressMode": "RR", opcode: 0x1B, "Length": 2, "Exec": () => this.SubtractRegister()   }; 
 
         // RR Extendend mnemonics
         this._instructions[0x07F0] = { "Name": "BR", "Description": "Branch Register (Unconditional)", "AddressMode": "RRX", opcode: 0x07, "mask": 0xf, "Length": 2  }; 
@@ -129,15 +129,22 @@ export class cpu {
         //}        
     }    
 
-    SubtractRegister() { 
-        
+    AddRegister() {         
+        //try {
+            this._regs[this._instr.R1] +=  this._regs[this._instr.R2];
+            this.PSW.setConditionCodeInt32(this._regs[this._instr.R1]);
+        //} catch {
+        //    this.PSW.ConditionCode = 0b11;
+        //}        
+    }    
+
+    SubtractRegister() {         
         //try {
             this._regs[this._instr.R1] -=  this._regs[this._instr.R2];
             this.PSW.setConditionCodeInt32(this._regs[this._instr.R1]);
         //} catch {
         //    this.PSW.ConditionCode = 0b11;
-        //}
-        
+        //}        
     }    
 
     LoadAddress() {
