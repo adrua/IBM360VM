@@ -21,7 +21,7 @@
     "@polymer/polymer": "^3.2.0",
     "@webcomponents/webcomponentsjs": "^2.2.10",
     "express": "^4.18.2",
-    "nearley": "^2.16.0",
+    "nearley": "^2.20.1",
     "web-animations-js": "^2.3.1"
   },
   "description": "Esta maquina sera construida en javascript es-2005\r ```\r npm install -g polymer-cli\r git clone https://github.com/PolymerLabs/start-polymer3.git\r cd start-polymer3\r npm install\r polymer serve\r ```",
